@@ -1,4 +1,4 @@
-import 'package:exemplo/views/pessoas_page.dart';
+import 'package:exemplo/views/main_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as p;

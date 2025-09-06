@@ -1,7 +1,8 @@
 import 'package:exemplo/controllers/database_controller.dart';
 import 'package:exemplo/models/pessoa_model.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:exemplo/views/pessoa_form.dart';
+import 'package:exemplo/views/pessoa_list.dart';
 
 class PessoasPage extends StatefulWidget {
   const PessoasPage({super.key});
@@ -126,98 +127,20 @@ class _PessoasPageState extends State<PessoasPage> {
       body: SafeArea(
         child: Column(
           children: [
-            // ---------------------------
-            // Formulário
-            // ---------------------------
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    TextFormField(
-                      controller: _nomeCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Nome',
-                        border: OutlineInputBorder(),
-                      ),
-                      textInputAction: TextInputAction.next,
-                      validator: (v) {
-                        if (v == null || v.trim().isEmpty) {
-                          return 'Informe o nome';
-                        }
-                        if (v.trim().length < 2) {
-                          return 'Nome muito curto';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _idadeCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Idade',
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: TextInputType.number,
-                      validator: (v) {
-                        if (v == null || v.trim().isEmpty) {
-                          return 'Informe a idade';
-                        }
-                        final n = int.tryParse(v.trim());
-                        if (n == null || n < 0 || n > 150) {
-                          return 'Idade inválida';
-                        }
-                        return null;
-                      },
-                      onFieldSubmitted: (_) {
-                        if (!_isSaving) _salvar();
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: _isSaving ? null : _salvar,
-                            icon: _isSaving
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : Icon(isEditing ? Icons.save : Icons.add),
-                            label: Text(
-                              isEditing ? 'Salvar alterações' : 'Adicionar',
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        if (isEditing)
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: _limparFormulario,
-                              icon: const Icon(Icons.close),
-                              label: const Text('Cancelar edição'),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+            PessoaForm(
+              formKey: _formKey,
+              nomeCtrl: _nomeCtrl,
+              idadeCtrl: _idadeCtrl,
+              isEditing: isEditing,
+              isSaving: _isSaving,
+              onSave: _salvar,
+              onCancel: _limparFormulario,
             ),
             const Divider(height: 1),
-            // ---------------------------
-            // Lista
-            // ---------------------------
+            // Lista de pessoas
             Expanded(
               child: FutureBuilder<List<Pessoa>>(
-                key: ValueKey(
-                  _reloadTick,
-                ), // <- força rebuild quando _reloadTick muda
+                key: ValueKey(_reloadTick),
                 future: _futurePessoas,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -229,64 +152,13 @@ class _PessoasPageState extends State<PessoasPage> {
                     );
                   }
                   if (snapshot.hasError) {
-                    return Center(child: Text('Erro: ${snapshot.error}'));
+                    return Center(child: Text('Erro: ${snapshot.error}'));
                   }
                   final pessoas = snapshot.data ?? const <Pessoa>[];
-                  if (pessoas.isEmpty) {
-                    return const Center(
-                      child: Text('Nenhuma pessoa cadastrada.'),
-                    );
-                  }
-                  return ListView.separated(
-                    padding: const EdgeInsets.all(12),
-                    itemCount: pessoas.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (context, index) {
-                      final p = pessoas[index];
-                      return Dismissible(
-                        key: ValueKey(p.id ?? '${p.nome}-${p.idade}-$index'),
-                        direction: DismissDirection.endToStart,
-                        background: Container(
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          color: Colors.red,
-                          child: const Icon(Icons.delete, color: Colors.white),
-                        ),
-                        confirmDismiss: (_) async {
-                          return await showDialog<bool>(
-                                context: context,
-                                builder: (ctx) => AlertDialog(
-                                  title: const Text('Remover registro'),
-                                  content: Text('Deseja remover ${p.nome}?'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.pop(ctx, false),
-                                      child: const Text('Cancelar'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(ctx, true),
-                                      child: const Text('Remover'),
-                                    ),
-                                  ],
-                                ),
-                              ) ??
-                              false;
-                        },
-                        onDismissed: (_) => _apagar(p.id!),
-                        child: ListTile(
-                          tileColor: Colors.grey.withValues(alpha: 0.06),
-                          title: Text('${p.nome} (${p.idade})'),
-                          subtitle: Text('ID: ${p.id ?? '-'}'),
-                          onTap: () => _carregarParaEdicao(p),
-                          trailing: IconButton(
-                            tooltip: 'Editar',
-                            icon: const Icon(Icons.edit),
-                            onPressed: () => _carregarParaEdicao(p),
-                          ),
-                        ),
-                      );
-                    },
+                  return PessoaList(
+                    pessoas: pessoas,
+                    onEdit: _carregarParaEdicao,
+                    onDelete: _apagar,
                   );
                 },
               ),
