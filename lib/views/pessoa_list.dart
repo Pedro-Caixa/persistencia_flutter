@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:exemplo/models/pessoa_model.dart';
 
+// ---------------------------
+// Lista
+// ---------------------------
 class PessoaList extends StatelessWidget {
   final List<Pessoa> pessoas;
   final void Function(Pessoa) onEdit;
@@ -55,7 +58,7 @@ class PessoaList extends StatelessWidget {
           },
           onDismissed: (_) => onDelete(p.id!),
           child: ListTile(
-            tileColor: Colors.grey.withAlpha(15),
+            tileColor: Colors.grey.withOpacity(0.06),
             title: Text('${p.nome} (${p.idade})'),
             subtitle: Text('ID: ${p.id ?? '-'}'),
             onTap: () => onEdit(p),

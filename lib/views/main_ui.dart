@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:exemplo/views/pessoa_form.dart';
 import 'package:exemplo/views/pessoa_list.dart';
 
+// ---------------------------
+// 4) UI (CRUD)
+// ---------------------------
 class PessoasPage extends StatefulWidget {
   const PessoasPage({super.key});
 
@@ -66,17 +69,17 @@ class _PessoasPageState extends State<PessoasPage> {
       if (_editingId == null) {
         await DatabaseHelper.instance.insert(Pessoa(nome: nome, idade: idade));
         if (!mounted) return;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Pessoa adicionada!')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Pessoa adicionada!')),
+        );
       } else {
         await DatabaseHelper.instance.update(
           Pessoa(id: _editingId, nome: nome, idade: idade),
         );
         if (!mounted) return;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Pessoa atualizada!')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Pessoa atualizada!')),
+        );
       }
 
       _limparFormulario();
@@ -84,9 +87,9 @@ class _PessoasPageState extends State<PessoasPage> {
       _refresh(); // dispara o FutureBuilder atualizar
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Erro ao salvar: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao salvar: $e')),
+      );
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -95,9 +98,9 @@ class _PessoasPageState extends State<PessoasPage> {
   Future<void> _apagar(int id) async {
     await DatabaseHelper.instance.delete(id);
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Pessoa removida.')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Pessoa removida.')),
+    );
     await _refresh();
   }
 
