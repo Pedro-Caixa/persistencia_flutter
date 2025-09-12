@@ -1,16 +1,67 @@
-import 'package:exemplo/models/pessoa_model.dart';
-import 'package:exemplo/controllers/database_controller.dart';
+import '../core/result.dart';
+import '../dao/pessoa_dao.dart';
+import '../models/pessoa_model.dart';
 
-class PessoaRepository {
-  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
+abstract class IPessoaRepository {
+  Future<Result<int>> addPessoa(Pessoa pessoa);
+  Future<Result<Pessoa?>> getPessoa(int id);
+  Future<Result<List<Pessoa>>> getPessoas();
+  Future<Result<int>> updatePessoa(Pessoa pessoa);
+  Future<Result<int>> deletePessoa(int id);
+}
 
-  Future<int> addPessoa(Pessoa p) => _dbHelper.insert(p);
+class PessoaRepository implements IPessoaRepository {
+  final PessoaDao _dao;
 
-  Future<Pessoa?> getPessoa(int id) => _dbHelper.getById(id);
+  PessoaRepository(this._dao);
 
-  Future<List<Pessoa>> getPessoas() => _dbHelper.getAll();
+  @override
+  Future<Result<int>> addPessoa(Pessoa pessoa) async {
+    try {
+      final id = await _dao.insert(pessoa);
+      return Result.success(id);
+    } catch (e) {
+      return Result.failure(e.toString());
+    }
+  }
 
-  Future<int> updatePessoa(Pessoa p) => _dbHelper.update(p);
+  @override
+  Future<Result<Pessoa?>> getPessoa(int id) async {
+    try {
+      final pessoa = await _dao.findById(id);
+      return Result.success(pessoa);
+    } catch (e) {
+      return Result.failure(e.toString());
+    }
+  }
 
-  Future<int> deletePessoa(int id) => _dbHelper.delete(id);
+  @override
+  Future<Result<List<Pessoa>>> getPessoas() async {
+    try {
+      final pessoas = await _dao.findAll();
+      return Result.success(pessoas);
+    } catch (e) {
+      return Result.failure(e.toString());
+    }
+  }
+
+  @override
+  Future<Result<int>> updatePessoa(Pessoa pessoa) async {
+    try {
+      final result = await _dao.update(pessoa);
+      return Result.success(result);
+    } catch (e) {
+      return Result.failure(e.toString());
+    }
+  }
+
+  @override
+  Future<Result<int>> deletePessoa(int id) async {
+    try {
+      final result = await _dao.delete(id);
+      return Result.success(result);
+    } catch (e) {
+      return Result.failure(e.toString());
+    }
+  }
 }
